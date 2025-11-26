@@ -9,21 +9,39 @@ import { LayoutGrid, BarChart3, Settings } from 'lucide-react';
 
 // Generate a unique ID for loadout instances
 const generateInstanceId = () => Math.random().toString(36).substr(2, 9);
+const STORAGE_KEY = 'arc_loadout_planner_state';
 
 function App() {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'loadout' | 'stats'>('loadout');
   
-  const [loadout, setLoadout] = useState<LoadoutState>({
-    weapon1: null,
-    weapon1Mods: [null, null, null, null],
-    weapon2: null,
-    weapon2Mods: [null, null, null, null],
-    shield: null,
-    augment: null,
-    backpack: []
+  // Initialize state from localStorage if available, otherwise use default
+  const [loadout, setLoadout] = useState<LoadoutState>(() => {
+    try {
+        const savedState = localStorage.getItem(STORAGE_KEY);
+        if (savedState) {
+            return JSON.parse(savedState);
+        }
+    } catch (error) {
+        console.warn('Failed to load saved loadout from storage:', error);
+    }
+    
+    return {
+        weapon1: null,
+        weapon1Mods: [null, null, null, null],
+        weapon2: null,
+        weapon2Mods: [null, null, null, null],
+        shield: null,
+        augment: null,
+        backpack: []
+    };
   });
+
+  // Save to localStorage whenever loadout changes
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(loadout));
+  }, [loadout]);
 
   useEffect(() => {
     const init = async () => {

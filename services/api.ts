@@ -1,7 +1,7 @@
 
 import { Item } from '../types';
 
-const REPO_OWNER = 'RaidTheory';
+const REPO_OWNER = 'Android65';
 const REPO_NAME = 'arcraiders-data';
 const ITEMS_PATH = 'items';
 
