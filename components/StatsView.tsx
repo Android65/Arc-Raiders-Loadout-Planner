@@ -221,7 +221,7 @@ export const StatsView: React.FC<StatsViewProps> = ({ loadout, allItems }) => {
 
   // Flatten for Primitive Shopping List
   const primitiveRequirements = useMemo(() => {
-     const totals = new Map<string, { item: Item | null, count: number }>();
+     const totals = new Map<string, { item: Item | null, itemId: string, count: number }>();
 
      const traverse = (node: CraftingNode, multiplier: number) => {
          const currentTotal = node.quantity * multiplier;
@@ -232,7 +232,7 @@ export const StatsView: React.FC<StatsViewProps> = ({ loadout, allItems }) => {
              if (existing) {
                  existing.count += currentTotal;
              } else {
-                 totals.set(node.itemId, { item: node.item, count: currentTotal });
+                 totals.set(node.itemId, { item: node.item, itemId: node.itemId, count: currentTotal });
              }
          } else {
              // It has recipe or upgrade cost, dive deeper
