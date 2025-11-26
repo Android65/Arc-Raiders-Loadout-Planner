@@ -1,0 +1,5 @@
+{
+  "name": "ARC Raiders Loadout Planner",
+  "description": "A loadout planning tool for ARC Raiders using community data to calculate costs, weight, and stats.",
+  "requestFramePermissions": []
+}
