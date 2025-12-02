@@ -110,10 +110,11 @@ const MOCK_ITEMS: Item[] = [
 export const fetchItems = async (): Promise<Item[]> => {
   try {
     // 1. Get list of files in the items directory
-    const dirResponse = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${ITEMS_PATH}`);
+    const apiUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${ITEMS_PATH}`;
+    const dirResponse = await fetch(apiUrl);
     
     if (!dirResponse.ok) {
-      console.warn('GitHub API limit reached or error. Using fallback data.');
+      console.warn(`GitHub API Error (${dirResponse.status} ${dirResponse.statusText}): Limit reached or path not found. Using fallback data.`);
       return MOCK_ITEMS;
     }
 
@@ -123,6 +124,7 @@ export const fetchItems = async (): Promise<Item[]> => {
     const jsonFiles = files.filter((file: any) => file.name.endsWith('.json'));
 
     if (jsonFiles.length === 0) {
+        console.warn('No JSON files found in directory. Using fallback data.');
         return MOCK_ITEMS;
     }
 
@@ -135,14 +137,23 @@ export const fetchItems = async (): Promise<Item[]> => {
         const batch = jsonFiles.slice(i, i + BATCH_SIZE);
         
         const batchPromises = batch.map(async (file: any) => {
-            // Use raw.githubusercontent to avoid API rate limits for content
-            const rawUrl = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${ITEMS_PATH}/${file.name}`;
+            // Use download_url provided by GitHub API to ensure we use the correct branch and path
+            const rawUrl = file.download_url;
+            
+            if (!rawUrl) {
+                console.warn(`No download_url for file ${file.name}`);
+                return null;
+            }
+
             try {
                 const res = await fetch(rawUrl);
-                if (!res.ok) return null;
+                if (!res.ok) {
+                     console.warn(`Failed to fetch content for ${file.name}: ${res.status}`);
+                     return null;
+                }
                 return res.json();
             } catch (err) {
-                console.error(`Failed to fetch item ${file.name}`, err);
+                console.error(`Network error fetching item ${file.name}`, err);
                 return null;
             }
         });
@@ -158,7 +169,7 @@ export const fetchItems = async (): Promise<Item[]> => {
     return items;
 
   } catch (error) {
-    console.error("Failed to fetch items:", error);
+    console.error("Critical error in fetchItems:", error);
     return MOCK_ITEMS;
   }
 };
